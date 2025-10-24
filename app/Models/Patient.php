@@ -7,12 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class Patient extends Model
 {
     protected $fillable = [
-        'id',
         'name',
-        'susCard',
+        'document',
         'birthDate',
         'createdBy',
-        'phone',
-        'timestamp'
+        'phone'
     ];
 }

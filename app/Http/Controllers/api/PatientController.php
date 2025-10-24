@@ -1,0 +1,47 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Patient;
+
+class PatientController extends Controller
+{
+    #listar
+    public function index()
+    {
+        return response()->json($this->patients->all());
+    }
+
+    #criar
+    public function store(Request $request){
+        $patient = $this->patients->create($request->all());
+        return response()->json($patient, 201);
+    }
+    #mostrar especifico
+    public function show($id){
+        $patient = $this->patients->find($id);
+        if(!$patient){
+            return response()->json(['message'=>'Paciente não encontrado'],404);
+        }
+        return response()->json($patient);
+    }
+    #atualizar
+    public function update(Request $request, $id){
+        $patient = $this->patients->find($id);
+        if (!$patient){
+            return response()->json(['message'=>'Paciente não encontrado'],404);
+        }
+        $patient->update($request->all());
+        return response()->json($patient);
+    }
+    #destruir legal 
+    public function destroy($id){
+        $patient = $this->patients->find($id);
+        if (!$patient){
+            return response()->json(['message'=>'Paciente não encontrado'],404);
+        }
+        $patient->delete();
+        return response()->json(null,204);
+    }
+}

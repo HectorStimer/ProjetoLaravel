@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('queue_entries', function (Blueprint $table) {
             $table->id();
-            $table->patient_id();
-            $table->service_id();
-            $table->enum('waiting','called','in_service','canceled','finished');
+            $table->integer('patient_id');
+            $table->integer('service_id');
+            $table->enum('status',['waiting','called','in_service','canceled','finished']);
             $table->int('priority')->default(0);
             $table->timestamp('arrived_at');
             $table->timestamp('called_at');
@@ -23,6 +23,8 @@ return new class extends Migration
             $table->timestamp('finished_at');
             $table->int('estimated_service_time')->nullable();
             $table->timestamps();
+            $table->foreign('patient_id')->references('id')->on('patients');
+            $table->foreign('service_id')->references('id')->on('services');
         });
     }
 
