@@ -10,17 +10,27 @@ class PatientController extends Controller
     #listar
     public function index()
     {
-        return response()->json($this->patients->all());
+        return response()->json(Patient::all());
     }
 
     #criar
     public function store(Request $request){
-        $patient = $this->patients->create($request->all());
-        return response()->json($patient, 201);
+        $validated = $request->validate([
+            'name'=> 'required|string|max:50',
+            'date_of_birth'=>'required|date',
+            'document'=>'string|max:20|unique:patients,document',
+            'phone'=>'nullable|string|max:15' 
+        ]);
+        $patient = Patient::create($validated);
+        return response()->json($patient,201);
     }
+        
+    
+
+
     #mostrar especifico
     public function show($id){
-        $patient = $this->patients->find($id);
+        $patient = Patient::find($id);
         if(!$patient){
             return response()->json(['message'=>'Paciente não encontrado'],404);
         }
@@ -28,7 +38,7 @@ class PatientController extends Controller
     }
     #atualizar
     public function update(Request $request, $id){
-        $patient = $this->patients->find($id);
+        $patient = Patient::find($id);
         if (!$patient){
             return response()->json(['message'=>'Paciente não encontrado'],404);
         }
@@ -37,7 +47,7 @@ class PatientController extends Controller
     }
     #destruir legal 
     public function destroy($id){
-        $patient = $this->patients->find($id);
+        $patient = Patient::find($id);
         if (!$patient){
             return response()->json(['message'=>'Paciente não encontrado'],404);
         }
