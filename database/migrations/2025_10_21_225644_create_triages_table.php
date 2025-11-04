@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('triages', function (Blueprint $table) {
-            $table->int('id')->primary();
-            $table->int('patient_id')->foreign('patient_id')->references('id')->on('patients');
-            $table->int('trigist_id')->foreign('trigist_id')->references('id')->on('users');
-            $table->enum('score',[1,2,3,4,5]);
+            $table->id();
+            $table->foreignId('patient_id')->constrained('patients')->cascadeOnDelete();
+            $table->foreignId('triagist_id')->constrained('users');
+            $table->tinyInteger('score');
             $table->text('notes')->nullable();
             $table->timestamps();
         });

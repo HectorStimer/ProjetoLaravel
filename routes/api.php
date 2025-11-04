@@ -19,6 +19,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard/triagist', [DashboardController::class, 'triagistDashboard']);
     Route::get('/dashboard/doctor', [DashboardController::class, 'doctorDashboard']);
 
+    // ROTAS DE PACIENTES
+    Route::get('/patients', [PatientController::class, 'index']);
+    Route::post('/patients', [PatientController::class, 'store']);
+    Route::get('/patients/{patient}', [PatientController::class, 'show']);
+    Route::put('/patients/{patient}', [PatientController::class, 'update']);
+    Route::delete('/patients/{patient}', [PatientController::class, 'destroy']);
+
     // PACIENTES
     Route::get('/patients', [PatientController::class, 'index']);
     Route::post('/patients', [PatientController::class, 'store']);
