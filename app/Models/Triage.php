@@ -8,15 +8,17 @@ class Triage extends Model
 {
     protected $fillable = [
         'patient_id',
-        'trigist_id',
+        'triagist_id',
         'score',
         'notes'
     ];
     public function patient()
     {
-        return $this->belongsTo(Patient::class);
+        return $this->belongsTo(Patient::class, 'patient_id');
     }
+    
     public function trigist()
     {
-        return $this->belongsTo(User::class, 'trigist_id'); }
+        return $this->belongsTo(User::class, 'triagist_id');
+    }
 }

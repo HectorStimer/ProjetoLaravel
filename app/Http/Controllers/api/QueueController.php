@@ -9,6 +9,24 @@ use App\Models\QueueEntry;
 class QueueController extends Controller
 {
     /**
+     * Listar fila atual
+     */
+    public function index(Request $request)
+    {
+        $query = QueueEntry::with(['patient', 'service'])
+            ->whereIn('status', ['waiting', 'called', 'in_service'])
+            ->orderBy('priority', 'asc')
+            ->orderBy('arrived_at', 'asc');
+
+        // Filtro por serviço se fornecido
+        if ($request->has('service_id')) {
+            $query->where('service_id', $request->service_id);
+        }
+
+        return response()->json($query->get());
+    }
+
+    /**
      * Adicionar paciente à fila
      */
     public function enqueue(Request $request)
@@ -48,6 +66,28 @@ class QueueController extends Controller
     }
 
     /**
+     * Chamar paciente específico
+     */
+    public function call($id)
+    {
+        $queueEntry = QueueEntry::find($id);
+
+        if (!$queueEntry) {
+            return response()->json(['message' => 'Entrada na fila não encontrada'], 404);
+        }
+
+        if ($queueEntry->status !== 'waiting') {
+            return response()->json(['message' => 'Paciente não está na fila de espera'], 400);
+        }
+
+        $queueEntry->status = 'called';
+        $queueEntry->called_at = now();
+        $queueEntry->save();
+
+        return response()->json($queueEntry->load(['patient', 'service']));
+    }
+
+    /**
      * Chamar o próximo paciente da fila (por serviço)
      */
     public function callNext($serviceId)
@@ -72,7 +112,7 @@ class QueueController extends Controller
     /**
      * Iniciar atendimento
      */
-    public function startService($id)
+    public function start($id)
     {
         $queueEntry = QueueEntry::where('id', $id)
             ->where('status', 'called')
@@ -86,7 +126,15 @@ class QueueController extends Controller
         $queueEntry->started_at = now();
         $queueEntry->save();
 
-        return response()->json($queueEntry);
+        return response()->json($queueEntry->load(['patient', 'service']));
+    }
+
+    /**
+     * Iniciar atendimento (método alternativo)
+     */
+    public function startService($id)
+    {
+        return $this->start($id);
     }
 
     /**
@@ -106,6 +154,44 @@ class QueueController extends Controller
         $queueEntry->finished_at = now();
         $queueEntry->save();
 
-        return response()->json($queueEntry);
+        return response()->json($queueEntry->load(['patient', 'service']));
+    }
+
+    /**
+     * Próximo paciente da fila
+     */
+    public function nextPatient(Request $request)
+    {
+        $serviceId = $request->input('service_id');
+        
+        $query = QueueEntry::where('status', 'waiting')
+            ->orderBy('priority', 'asc')
+            ->orderBy('arrived_at', 'asc');
+
+        if ($serviceId) {
+            $query->where('service_id', $serviceId);
+        }
+
+        $nextEntry = $query->first();
+
+        if (!$nextEntry) {
+            return response()->json(['message' => 'Nenhum paciente na fila'], 404);
+        }
+
+        return response()->json($nextEntry->load(['patient', 'service']));
+    }
+
+    /**
+     * Fila para triagem
+     */
+    public function getQueueForScreening()
+    {
+        $queueEntries = QueueEntry::with(['patient', 'service'])
+            ->whereIn('status', ['waiting', 'called'])
+            ->orderBy('priority', 'asc')
+            ->orderBy('arrived_at', 'asc')
+            ->get();
+
+        return response()->json($queueEntries);
     }
 }

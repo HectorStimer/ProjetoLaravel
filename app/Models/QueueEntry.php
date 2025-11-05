@@ -7,23 +7,29 @@ use Illuminate\Database\Eloquent\Model;
 class QueueEntry extends Model
 {
     protected $fillable = [
-        'patientId',
-        'serviceId',
+        'patient_id',
+        'service_id',
         'priority',
-        'arrivedAt',
-        'calledAt',
-        'startedAt',
-        'finishedAt',
-        'estimatedServiceTime',        
+        'arrived_at',
+        'called_at',
+        'started_at',
+        'finished_at',
+        'estimated_service_time',        
         'status',
-        'createdBy'
+        'created_by'
     ];
     public function patient()
     {
-        return $this->belongsTo(Patient::class);
+        return $this->belongsTo(Patient::class, 'patient_id');
     }
+    
     public function service()
     {
-        return $this->belongsTo(Service::class);
+        return $this->belongsTo(Service::class, 'service_id');
+    }
+    
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

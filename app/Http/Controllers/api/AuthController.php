@@ -39,21 +39,30 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Usuário administrador criado com sucesso',
             'token' => $token,
-            'redirect' => route('admin.dashboard')
+            'user' => $user,
+            'redirect' => '/api/dashboard/admin'
         ], 201);
     } elseif ($user->function === 'triagist') {
         return response()->json([
             'message' => 'Triagista registrado com sucesso',
             'token' => $token,
-            'redirect' => route('triagist.dashboard')
+            'user' => $user,
+            'redirect' => '/api/dashboard/triagist'
         ], 201);
     } elseif ($user->function === 'doctor') {
         return response()->json([
             'message' => 'Médico registrado com sucesso',
             'token' => $token,
-            'redirect' => route('doctor.dashboard')
+            'user' => $user,
+            'redirect' => '/api/dashboard/doctor'
         ], 201);
     }
+    
+    return response()->json([
+        'message' => 'Usuário criado com sucesso',
+        'token' => $token,
+        'user' => $user,
+    ], 201);
 }
 
     public function login(Request $request){
@@ -68,25 +77,33 @@ class AuthController extends Controller
         $token = $user->createToken('api-token')->plainTextToken;
 
         if ($user->function === 'admin') {
-        return response()->json([
-            'message' => 'Usuário administrador criado com sucesso',
-            'token' => $token,
-            'redirect' => route('admin.dashboard')
-        ], 201);
+            return response()->json([
+                'message' => 'Login realizado com sucesso',
+                'token' => $token,
+                'user' => $user,
+                'redirect' => '/api/dashboard/admin'
+            ], 200);
         } elseif ($user->function === 'triagist') {
             return response()->json([
-                'message' => 'Triagista registrado com sucesso',
+                'message' => 'Login realizado com sucesso',
                 'token' => $token,
-                'redirect' => route('triagist.dashboard')
-            ], 201);
+                'user' => $user,
+                'redirect' => '/api/dashboard/triagist'
+            ], 200);
         } elseif ($user->function === 'doctor') {
             return response()->json([
-                'message' => 'Médico registrado com sucesso',
+                'message' => 'Login realizado com sucesso',
                 'token' => $token,
-                'redirect' => route('doctor.dashboard')
-            ], 201);
+                'user' => $user,
+                'redirect' => '/api/dashboard/doctor'
+            ], 200);
         }
 
+        return response()->json([
+            'message' => 'Login realizado com sucesso',
+            'token' => $token,
+            'user' => $user,
+        ], 200);
     }
 
     public function logout(Request $request)

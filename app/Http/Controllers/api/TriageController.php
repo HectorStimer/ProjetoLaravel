@@ -14,10 +14,15 @@ class TriageController extends Controller
     {
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
-            'triagist_id' => 'required|exists:users,id',
+            'triagist_id' => 'nullable|exists:users,id',
             'score' => 'required|integer|min:1|max:5',
             'notes' => 'nullable|string',
         ]);
+        
+        // Se não fornecido, usar o usuário autenticado
+        if (!isset($validated['triagist_id'])) {
+            $validated['triagist_id'] = auth()->id();
+        }
 
         $triage = Triage::create($validated);
 
@@ -91,5 +96,22 @@ class TriageController extends Controller
         }
 
         return response()->json($query->get());
+    }
+
+    /**
+     * Mostrar triagem por paciente
+     */
+    public function showByPatient($patientId)
+    {
+        $triage = Triage::where('patient_id', $patientId)
+            ->with(['patient', 'trigist'])
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$triage) {
+            return response()->json(['message' => 'Triagem não encontrada para este paciente'], 404);
+        }
+
+        return response()->json($triage);
     }
 }

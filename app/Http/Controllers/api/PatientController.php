@@ -17,11 +17,21 @@ class PatientController extends Controller
     public function store(Request $request){
         $validated = $request->validate([
             'name'=> 'required|string|max:50',
-            'date_of_birth'=>'required|date',
-            'document'=>'string|max:20|unique:patients,document',
+            'birth_date'=>'required|date',
+            'document'=>'nullable|string|max:20|unique:patients,document',
             'phone'=>'nullable|string|max:15' 
         ]);
-        $patient = Patient::create($validated);
+        
+        // Mapear birth_date corretamente
+        $patientData = [
+            'name' => $validated['name'],
+            'birth_date' => $validated['birth_date'],
+            'document' => $validated['document'] ?? null,
+            'phone' => $validated['phone'] ?? null,
+            'created_by' => auth()->id(),
+        ];
+        
+        $patient = Patient::create($patientData);
         return response()->json($patient,201);
     }
         
