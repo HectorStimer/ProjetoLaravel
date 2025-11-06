@@ -11,7 +11,7 @@ class UpdateTriageRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true; // Permitir apenas usuários com papel de triagem
     }
 
     /**
@@ -22,7 +22,15 @@ class UpdateTriageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'score' => 'required|integer|between:1,5',
+            'notes' => 'nullable|string|max:1000',
+            'vital_signs' => 'nullable|array',
+            'vital_signs.blood_pressure' => 'nullable|string',
+            'vital_signs.heart_rate' => 'nullable|integer',
+            'vital_signs.temperature' => 'nullable|numeric',
+            'vital_signs.oxygen_saturation' => 'nullable|integer|between:0,100',
+            'symptoms' => 'required|string',
+            'service_id' => 'required|exists:services,id'
         ];
     }
 }

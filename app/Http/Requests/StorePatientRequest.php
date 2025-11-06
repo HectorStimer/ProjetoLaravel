@@ -11,7 +11,7 @@ class StorePatientRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true; // Autoriza usuários autenticados
     }
 
     /**
@@ -22,7 +22,15 @@ class StorePatientRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|string|max:255',
+            'birth_date' => 'required|date',
+            'cpf' => 'required|string|size:11|unique:patients,cpf',
+            'phone' => 'required|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'address' => 'nullable|string|max:255',
+            'emergency_contact' => 'nullable|string|max:255',
+            'medical_conditions' => 'nullable|string',
+            'allergies' => 'nullable|string'
         ];
     }
 }
