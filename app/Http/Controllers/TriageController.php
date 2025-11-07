@@ -17,7 +17,7 @@ class TriageController extends Controller
      */
     public function index(Request $request): Response
     {
-        $query = Triage::with(['patient', 'trigist'])
+        $query = Triage::with(['patient', 'triagist'])
             ->orderBy('created_at', 'desc');
 
         // Filtros
@@ -99,7 +99,7 @@ class TriageController extends Controller
      */
     public function show(Triage $triage): Response
     {
-        $triage->load(['patient', 'trigist']);
+        $triage->load(['patient', 'triagist']);
 
         return Inertia::render('triage/show', [
             'triage' => $triage,

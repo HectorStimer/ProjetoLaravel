@@ -84,7 +84,7 @@ export default function TriageIndex({ triages, patients }: Props) {
                                                         {triage.patient?.name || 'Paciente não encontrado'}
                                                     </CardTitle>
                                                     <p className="text-sm text-gray-500 mt-1">
-                                                        Triagista: {triage.trigist?.name || 'Não informado'}
+                                                        Triagista: {triage.triagist?.name || 'Não informado'}
                                                     </p>
                                                     <p className="text-sm text-gray-500">
                                                         Data: {new Date(triage.created_at).toLocaleString('pt-BR')}

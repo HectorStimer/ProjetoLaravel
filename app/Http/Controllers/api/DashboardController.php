@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
-use App\Models\Triage;
+use App\Http\Controllers\Controller;
 use App\Models\Patient;
 use App\Models\QueueEntry;
+use App\Models\Triage;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -110,7 +111,7 @@ class DashboardController extends Controller
                 ->orderBy('priority', 'asc')
                 ->orderBy('arrived_at', 'asc')
                 ->get(),
-            'recent_triages' => Triage::with(['patient', 'trigist'])
+            'recent_triages' => Triage::with(['patient', 'triagist'])
                 ->orderBy('created_at', 'desc')
                 ->take(10)
                 ->get(),

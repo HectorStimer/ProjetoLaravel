@@ -17,7 +17,7 @@ class Triage extends Model
         return $this->belongsTo(Patient::class, 'patient_id');
     }
     
-    public function trigist()
+    public function triagist()
     {
         return $this->belongsTo(User::class, 'triagist_id');
     }

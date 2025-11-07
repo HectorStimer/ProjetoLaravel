@@ -88,5 +88,5 @@ export interface Triage {
     created_at: string;
     updated_at: string;
     patient?: Patient;
-    trigist?: User;
+    triagist?: User;
 }

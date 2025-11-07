@@ -104,7 +104,7 @@ class TriageController extends Controller
     public function showByPatient($patientId)
     {
         $triage = Triage::where('patient_id', $patientId)
-            ->with(['patient', 'trigist'])
+            ->with(['patient', 'triagist'])
             ->orderBy('created_at', 'desc')
             ->first();
 

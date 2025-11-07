@@ -88,7 +88,8 @@ class DashboardController extends Controller
             ->orderBy('arrived_at', 'asc')
             ->get();
 
-        $recentTriages = Triage::with(['patient', 'trigist'])
+        $recentTriages = Triage::with(['patient', 'triagist'])
+        $recentTriages = Triage::with(['patient', 'triagist'])
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get();

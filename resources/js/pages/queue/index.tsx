@@ -31,7 +31,8 @@ import {
     User,
     Stethoscope
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import api from '@/lib/api';
 
 interface Props {
     queueEntries: QueueEntry[];
@@ -56,6 +57,35 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
     const [selectedServiceFilter, setSelectedServiceFilter] = useState<number | undefined>(
         selectedServiceId
     );
+    const [entries, setEntries] = useState(queueEntries);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
+    useEffect(() => {
+        setEntries(queueEntries);
+    }, [queueEntries]);
+
+    async function fetchQueue(serviceId?: number) {
+        try {
+            setIsRefreshing(true);
+            const params = serviceId ? { service_id: serviceId } : undefined;
+            const { data } = await api.get<QueueEntry[]>('/queue', { params });
+            setEntries(data);
+        } catch (error) {
+            console.error('Erro ao atualizar fila', error);
+        } finally {
+            setIsRefreshing(false);
+        }
+    }
+
+    useEffect(() => {
+        fetchQueue(selectedServiceFilter);
+        const interval = window.setInterval(() => {
+            fetchQueue(selectedServiceFilter);
+        }, 10000);
+
+        return () => window.clearInterval(interval);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedServiceFilter]);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         patient_id: '',
@@ -69,38 +99,74 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
             onSuccess: () => {
                 reset();
                 setShowAddModal(false);
+                fetchQueue(selectedServiceFilter);
             },
         });
     }
 
     function handleCallNext() {
-        router.post('/queue/call-next', {
-            service_id: selectedServiceFilter,
-        });
+        router.post(
+            '/queue/call-next',
+            {
+                service_id: selectedServiceFilter,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => fetchQueue(selectedServiceFilter),
+            }
+        );
     }
 
     function handleCall(id: number) {
-        router.post(`/queue/${id}/call`);
+        router.post(
+            `/queue/${id}/call`,
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => fetchQueue(selectedServiceFilter),
+            }
+        );
     }
 
     function handleStart(id: number) {
-        router.post(`/queue/${id}/start`);
+        router.post(
+            `/queue/${id}/start`,
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => fetchQueue(selectedServiceFilter),
+            }
+        );
     }
 
     function handleFinish(id: number) {
-        router.post(`/queue/${id}/finish`);
+        router.post(
+            `/queue/${id}/finish`,
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => fetchQueue(selectedServiceFilter),
+            }
+        );
     }
 
     function handleCancel(id: number) {
         if (confirm('Tem certeza que deseja remover este paciente da fila?')) {
-            router.post(`/queue/${id}/cancel`);
+            router.post(
+                `/queue/${id}/cancel`,
+                {},
+                {
+                    preserveScroll: true,
+                    onSuccess: () => fetchQueue(selectedServiceFilter),
+                }
+            );
         }
     }
 
     function handleFilterChange(serviceId: string) {
         const id = serviceId === 'all' ? undefined : parseInt(serviceId);
         setSelectedServiceFilter(id);
-        router.get('/queue', { service_id: id }, { preserveState: true });
+        fetchQueue(id);
     }
 
     function getStatusBadge(status: QueueEntry['status']) {
@@ -127,9 +193,9 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
         return labels[priority] || `Prioridade ${priority}`;
     }
 
-    const waitingEntries = queueEntries.filter(e => e.status === 'waiting');
-    const calledEntries = queueEntries.filter(e => e.status === 'called');
-    const inServiceEntries = queueEntries.filter(e => e.status === 'in_service');
+    const waitingEntries = entries.filter(e => e.status === 'waiting');
+    const calledEntries = entries.filter(e => e.status === 'called');
+    const inServiceEntries = entries.filter(e => e.status === 'in_service');
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -254,7 +320,7 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
                     <div className="flex items-end">
                         <Button 
                             onClick={handleCallNext}
-                            disabled={waitingEntries.length === 0}
+                            disabled={waitingEntries.length === 0 || isRefreshing}
                             variant="secondary"
                         >
                             <Phone className="mr-2 h-4 w-4" />
