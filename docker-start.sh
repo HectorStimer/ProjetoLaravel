@@ -7,6 +7,7 @@ echo "🐳 Iniciando containers Docker..."
 # Verificar se Docker está rodando
 if ! docker info > /dev/null 2>&1; then
     echo "❌ Docker não está rodando! Inicie o Docker primeiro."
+    echo "   Execute: sudo systemctl start docker"
     exit 1
 fi
 
@@ -19,6 +20,12 @@ if [ ! -f .env ]; then
         echo "❌ Arquivo .env.example não encontrado. Crie o arquivo .env manualmente."
         exit 1
     fi
+fi
+
+# Configurar .env para Docker
+if [ -f docker-setup-env.sh ]; then
+    chmod +x docker-setup-env.sh
+    ./docker-setup-env.sh
 fi
 
 # Subir containers

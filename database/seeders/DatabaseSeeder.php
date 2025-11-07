@@ -13,13 +13,38 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Seed Services
+        $this->call(ServiceSeeder::class);
 
+        // Criar usuário admin padrão
         User::firstOrCreate(
-            ['email' => 'test@example.com'],
+            ['email' => 'admin@hospital.com'],
             [
-                'name' => 'Test User',
-                'password' => 'password',
+                'name' => 'Administrador',
+                'password' => bcrypt('admin123'),
+                'function' => 'admin',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Criar usuário triagista padrão
+        User::firstOrCreate(
+            ['email' => 'triagista@hospital.com'],
+            [
+                'name' => 'Triagista',
+                'password' => bcrypt('triagista123'),
+                'function' => 'triagist',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Criar usuário médico padrão
+        User::firstOrCreate(
+            ['email' => 'medico@hospital.com'],
+            [
+                'name' => 'Médico',
+                'password' => bcrypt('medico123'),
+                'function' => 'doctor',
                 'email_verified_at' => now(),
             ]
         );

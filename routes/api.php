@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Api\QueueController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\Api\TriageController;
+use App\Http\Controllers\ServiceController;
 
 // ROTAS DE AUTENTICAÇÃO
 Route::post('/register', [AuthController::class, 'register']);
@@ -28,6 +29,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // TRIAGEM
     Route::post('/triage', [TriageController::class, 'store']);
     Route::get('/triage/{patient_id}', [TriageController::class, 'showByPatient']);
+
+    // SERVIÇOS
+    Route::get('/services', [ServiceController::class, 'index']);
+    Route::post('/services', [ServiceController::class, 'store']);
+    Route::get('/services/{id}', [ServiceController::class, 'show']);
+    Route::put('/services/{id}', [ServiceController::class, 'update']);
+    Route::delete('/services/{id}', [ServiceController::class, 'destroy']);
 
     // FILA
     Route::get('/queue', [QueueController::class, 'index']);              // listar fila atual
