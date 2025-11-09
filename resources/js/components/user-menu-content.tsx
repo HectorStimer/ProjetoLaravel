@@ -23,24 +23,47 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
         e.preventDefault();
         cleanup();
         
-        // Limpar token do localStorage se existir
-        localStorage.removeItem('auth_token');
-        
-        // Limpar cookies relacionados
-        document.cookie.split(";").forEach((c) => {
-            document.cookie = c
-                .replace(/^ +/, "")
-                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-        });
-        
-        // Fazer logout via Inertia (Fortify)
-        router.post(logout(), {}, {
-            onFinish: () => {
-                router.flushAll();
-                // Forçar redirecionamento para garantir que funcione
-                window.location.href = '/';
-            },
-        });
+        try {
+            // Primeiro, tenta fazer logout via API (para limpar tokens Sanctum)
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                try {
+                    await fetch('/api/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                    });
+                } catch (error) {
+                    // Ignora erros da API de logout (pode já estar deslogado)
+                    console.warn('Erro ao fazer logout via API:', error);
+                }
+            }
+        } catch (error) {
+            console.warn('Erro ao processar logout:', error);
+        } finally {
+            // Limpar token do localStorage
+            localStorage.removeItem('auth_token');
+            
+            // Limpar cookies relacionados
+            document.cookie.split(";").forEach((c) => {
+                document.cookie = c
+                    .replace(/^ +/, "")
+                    .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            });
+            
+            // Fazer logout via Inertia (Fortify)
+            router.post(logout(), {}, {
+                onFinish: () => {
+                    router.flushAll();
+                    // Forçar redirecionamento para garantir que funcione
+                    window.location.href = '/';
+                },
+            });
+        }
     };
 
     return (

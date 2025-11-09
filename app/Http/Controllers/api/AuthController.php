@@ -91,12 +91,12 @@ class AuthController extends Controller
     
     public function logout(Request $request)
     {
-        // Verifica se o usuário está autenticado
-        $user = $request->user();
+        // Verifica se o usuário está autenticado via Sanctum
+        $user = $request->user('sanctum');
     
         if ($user) {
-            // Revoga APENAS o token atual
-            $user->currentAccessToken()->delete();
+            // Revoga TODOS os tokens do usuário (não apenas o atual)
+            $user->tokens()->delete();
     
             return response()->json([
                 'message' => 'Logout realizado com sucesso!'

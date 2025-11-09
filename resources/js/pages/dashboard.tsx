@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import { useUserRole } from '@/hooks/use-user-role';
 
 interface AdminDashboardProps {
     type: 'admin';
@@ -75,10 +76,26 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Dashboard(props: DashboardProps) {
-    // Debug: verificar o que está sendo recebido
-    console.log('Dashboard props recebidas:', props);
-    console.log('Tipo do dashboard:', props.type);
+    const { function: userFunction, user } = useUserRole();
     
+    // Verifica se o tipo do dashboard corresponde à função do usuário
+    useEffect(() => {
+        if (!user) {
+            router.visit('/login');
+            return;
+        }
+
+        // Se o tipo do dashboard não corresponder à função do usuário, redireciona
+        if (props.type === 'admin' && userFunction !== 'admin') {
+            router.visit('/dashboard');
+        } else if (props.type === 'triagist' && userFunction !== 'triagist') {
+            router.visit('/dashboard');
+        } else if (props.type === 'doctor' && userFunction !== 'doctor') {
+            router.visit('/dashboard');
+        }
+    }, [props.type, userFunction, user]);
+    
+    // Renderiza o dashboard baseado no tipo
     if (props.type === 'admin') {
         return <AdminDashboard {...props} />;
     } else if (props.type === 'triagist') {

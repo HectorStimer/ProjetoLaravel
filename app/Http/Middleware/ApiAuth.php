@@ -22,16 +22,21 @@ class ApiAuth
         }
 
         // Se não estiver autenticado via sessão, tenta via Sanctum (token)
-        if ($request->bearerToken()) {
-            if (auth('sanctum')->check()) {
-                auth()->setUser(auth('sanctum')->user());
+        $token = $request->bearerToken();
+        if ($token) {
+            // Tenta autenticar usando o token Sanctum
+            // O método user('sanctum') valida automaticamente o token Bearer
+            $user = $request->user('sanctum');
+            
+            if ($user) {
+                // Define o usuário autenticado para o guard padrão
+                auth()->setUser($user);
                 return $next($request);
             }
         }
 
-        // Para requisições Inertia/Ajax, verifica se há sessão ativa
-        if ($request->expectsJson() || $request->wantsJson()) {
-            // Se for requisição JSON mas não autenticado, retorna 401
+        // Para requisições JSON/API, retorna 401 se não autenticado
+        if ($request->expectsJson() || $request->wantsJson() || $request->is('api/*')) {
             return response()->json(['message' => 'Não autenticado'], 401);
         }
 
