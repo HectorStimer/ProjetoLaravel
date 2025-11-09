@@ -51,4 +51,28 @@ class User extends Authenticatable
             'two_factor_confirmed_at' => 'datetime',
         ];
     }
+
+    /**
+     * Verifica se o usuário é administrador
+     */
+    public function isAdmin(): bool
+    {
+        return $this->function === 'admin';
+    }
+
+    /**
+     * Verifica se o usuário é triagista
+     */
+    public function isTriagist(): bool
+    {
+        return $this->function === 'triagist';
+    }
+
+    /**
+     * Verifica se o usuário é médico
+     */
+    public function isDoctor(): bool
+    {
+        return $this->function === 'doctor';
+    }
 }

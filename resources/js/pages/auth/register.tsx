@@ -1,6 +1,6 @@
 import { login } from '@/routes';
 import { store } from '@/routes/register';
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, useForm } from '@inertiajs/react';
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -8,24 +8,49 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { 
+    Select, 
+    SelectContent, 
+    SelectItem, 
+    SelectTrigger, 
+    SelectValue 
+} from '@/components/ui/select';
 import AuthLayout from '@/layouts/auth-layout';
 
 export default function Register() {
+    const { data, setData, post, processing, errors, reset } = useForm({
+        name: '',
+        email: '',
+        password: '',
+        password_confirmation: '',
+        function: '',
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        post(store.url(), {
+            onSuccess: () => {
+                reset('password', 'password_confirmation');
+            },
+        });
+    };
+
     return (
         <AuthLayout
             title="Create an account"
             description="Enter your details below to create your account"
         >
             <Head title="Register" />
-            <Form
-                {...store.form()}
-                resetOnSuccess={['password', 'password_confirmation']}
-                disableWhileProcessing
+            <form
+                onSubmit={handleSubmit}
                 className="flex flex-col gap-6"
             >
-                {({ processing, errors }) => (
-                    <>
-                        <div className="grid gap-6">
+                {processing && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                        <Spinner />
+                    </div>
+                )}
+                <div className="grid gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="name">Name</Label>
                                 <Input
@@ -36,6 +61,8 @@ export default function Register() {
                                     tabIndex={1}
                                     autoComplete="name"
                                     name="name"
+                                    value={data.name}
+                                    onChange={(e) => setData('name', e.target.value)}
                                     placeholder="Full name"
                                 />
                                 <InputError
@@ -53,6 +80,8 @@ export default function Register() {
                                     tabIndex={2}
                                     autoComplete="email"
                                     name="email"
+                                    value={data.email}
+                                    onChange={(e) => setData('email', e.target.value)}
                                     placeholder="email@example.com"
                                 />
                                 <InputError message={errors.email} />
@@ -67,6 +96,8 @@ export default function Register() {
                                     tabIndex={3}
                                     autoComplete="new-password"
                                     name="password"
+                                    value={data.password}
+                                    onChange={(e) => setData('password', e.target.value)}
                                     placeholder="Password"
                                 />
                                 <InputError message={errors.password} />
@@ -83,6 +114,8 @@ export default function Register() {
                                     tabIndex={4}
                                     autoComplete="new-password"
                                     name="password_confirmation"
+                                    value={data.password_confirmation}
+                                    onChange={(e) => setData('password_confirmation', e.target.value)}
                                     placeholder="Confirm password"
                                 />
                                 <InputError
@@ -90,10 +123,33 @@ export default function Register() {
                                 />
                             </div>
 
+                            <div className="grid gap-2">
+                                <Label htmlFor="function">Tipo de Usuário</Label>
+                                <Select
+                                    value={data.function}
+                                    onValueChange={(value) => setData('function', value)}
+                                    required
+                                >
+                                    <SelectTrigger id="function" tabIndex={5}>
+                                        <SelectValue placeholder="Selecione o tipo de usuário" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="admin">Administrador</SelectItem>
+                                        <SelectItem value="triagist">Triagista</SelectItem>
+                                        <SelectItem value="doctor">Médico</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <InputError
+                                    message={errors.function}
+                                    className="mt-2"
+                                />
+                            </div>
+
                             <Button
                                 type="submit"
                                 className="mt-2 w-full"
-                                tabIndex={5}
+                                tabIndex={6}
+                                disabled={processing}
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
@@ -101,15 +157,13 @@ export default function Register() {
                             </Button>
                         </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
-                            Already have an account?{' '}
-                            <TextLink href={login()} tabIndex={6}>
-                                Log in
-                            </TextLink>
-                        </div>
-                    </>
-                )}
-            </Form>
+                <div className="text-center text-sm text-muted-foreground">
+                    Already have an account?{' '}
+                    <TextLink href={login()} tabIndex={7}>
+                        Log in
+                    </TextLink>
+                </div>
+            </form>
         </AuthLayout>
     );
 }

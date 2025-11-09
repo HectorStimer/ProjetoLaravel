@@ -19,9 +19,28 @@ interface UserMenuContentProps {
 export function UserMenuContent({ user }: UserMenuContentProps) {
     const cleanup = useMobileNavigation();
 
-    const handleLogout = () => {
+    const handleLogout = async (e: React.MouseEvent) => {
+        e.preventDefault();
         cleanup();
-        router.flushAll();
+        
+        // Limpar token do localStorage se existir
+        localStorage.removeItem('auth_token');
+        
+        // Limpar cookies relacionados
+        document.cookie.split(";").forEach((c) => {
+            document.cookie = c
+                .replace(/^ +/, "")
+                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+        
+        // Fazer logout via Inertia (Fortify)
+        router.post(logout(), {}, {
+            onFinish: () => {
+                router.flushAll();
+                // Forçar redirecionamento para garantir que funcione
+                window.location.href = '/';
+            },
+        });
     };
 
     return (
@@ -48,16 +67,14 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-                <Link
-                    className="block w-full"
-                    href={logout()}
-                    as="button"
+                <button
+                    className="block w-full text-left"
                     onClick={handleLogout}
                     data-test="logout-button"
                 >
                     <LogOut className="mr-2" />
                     Log out
-                </Link>
+                </button>
             </DropdownMenuItem>
         </>
     );

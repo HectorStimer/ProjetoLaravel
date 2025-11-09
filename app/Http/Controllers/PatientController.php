@@ -10,12 +10,18 @@ use Inertia\Response;
 class PatientController extends Controller
 {
     /**
-     * Listar todos os pacientes (Inertia)
+     * Listar todos os pacientes
      */
-    public function index(): Response
+    public function index(Request $request)
     {
         $patients = Patient::orderBy('created_at', 'desc')->get();
         
+        // Se for requisição API, retornar JSON
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json($patients);
+        }
+        
+        // Caso contrário, retornar Inertia
         return Inertia::render('patients/index', [
             'patients' => $patients
         ]);
@@ -43,8 +49,14 @@ class PatientController extends Controller
         
         $validated['created_by'] = auth()->id();
         
-        Patient::create($validated);
+        $patient = Patient::create($validated);
         
+        // Se for requisição API, retornar JSON
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json($patient, 201);
+        }
+        
+        // Caso contrário, redirecionar
         return redirect()->route('patients.index')
             ->with('success', 'Paciente criado com sucesso!');
     }
@@ -52,8 +64,14 @@ class PatientController extends Controller
     /**
      * Mostrar paciente específico
      */
-    public function show(Patient $patient): Response
+    public function show(Request $request, Patient $patient)
     {
+        // Se for requisição API, retornar JSON
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json($patient);
+        }
+        
+        // Caso contrário, retornar Inertia
         return Inertia::render('patients/show', [
             'patient' => $patient
         ]);
@@ -83,6 +101,12 @@ class PatientController extends Controller
         
         $patient->update($validated);
         
+        // Se for requisição API, retornar JSON
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json($patient);
+        }
+        
+        // Caso contrário, redirecionar
         return redirect()->route('patients.index')
             ->with('success', 'Paciente atualizado com sucesso!');
     }
@@ -90,10 +114,16 @@ class PatientController extends Controller
     /**
      * Deletar paciente
      */
-    public function destroy(Patient $patient)
+    public function destroy(Request $request, Patient $patient)
     {
         $patient->delete();
         
+        // Se for requisição API, retornar JSON
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json(null, 204);
+        }
+        
+        // Caso contrário, redirecionar
         return redirect()->route('patients.index')
             ->with('success', 'Paciente deletado com sucesso!');
     }

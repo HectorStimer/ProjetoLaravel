@@ -1,4 +1,4 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,7 +20,7 @@ import {
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/input-error';
 import { dashboard } from '@/routes';
-import { type BreadcrumbItem, type QueueEntry, type Service, type Patient } from '@/types';
+import { type BreadcrumbItem, type QueueEntry, type Service, type Patient, type SharedData } from '@/types';
 import { 
     Plus, 
     Phone, 
@@ -32,7 +32,6 @@ import {
     Stethoscope
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import api from '@/lib/api';
 
 interface Props {
     queueEntries: QueueEntry[];
@@ -53,6 +52,12 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function QueueIndex({ queueEntries, services, patients, selectedServiceId }: Props) {
+    const { auth } = usePage<SharedData>().props;
+    const user = auth.user;
+    const isAdmin = user.function === 'admin';
+    const isTriagist = user.function === 'triagist';
+    const isDoctor = user.function === 'doctor';
+    
     const [showAddModal, setShowAddModal] = useState(false);
     const [selectedServiceFilter, setSelectedServiceFilter] = useState<number | undefined>(
         selectedServiceId
@@ -64,27 +69,19 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
         setEntries(queueEntries);
     }, [queueEntries]);
 
-    async function fetchQueue(serviceId?: number) {
-        try {
-            setIsRefreshing(true);
-            const params = serviceId ? { service_id: serviceId } : undefined;
-            const { data } = await api.get<QueueEntry[]>('/queue', { params });
-            setEntries(data);
-        } catch (error) {
-            console.error('Erro ao atualizar fila', error);
-        } finally {
-            setIsRefreshing(false);
-        }
-    }
-
+    // Atualizar fila a cada 10 segundos usando Inertia
     useEffect(() => {
-        fetchQueue(selectedServiceFilter);
         const interval = window.setInterval(() => {
-            fetchQueue(selectedServiceFilter);
+            const params = selectedServiceFilter ? { service_id: selectedServiceFilter } : {};
+            router.reload({ 
+                only: ['queueEntries'],
+                data: params,
+                preserveState: true,
+                preserveScroll: true,
+            });
         }, 10000);
 
         return () => window.clearInterval(interval);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedServiceFilter]);
 
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -99,7 +96,11 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
             onSuccess: () => {
                 reset();
                 setShowAddModal(false);
-                fetchQueue(selectedServiceFilter);
+                router.reload({ 
+                    only: ['queueEntries'],
+                    data: selectedServiceFilter ? { service_id: selectedServiceFilter } : {},
+                    preserveState: true,
+                });
             },
         });
     }
@@ -112,7 +113,13 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
             },
             {
                 preserveScroll: true,
-                onSuccess: () => fetchQueue(selectedServiceFilter),
+                onSuccess: () => {
+                    router.reload({ 
+                        only: ['queueEntries'],
+                        data: selectedServiceFilter ? { service_id: selectedServiceFilter } : {},
+                        preserveState: true,
+                    });
+                },
             }
         );
     }
@@ -123,7 +130,13 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
             {},
             {
                 preserveScroll: true,
-                onSuccess: () => fetchQueue(selectedServiceFilter),
+                onSuccess: () => {
+                    router.reload({ 
+                        only: ['queueEntries'],
+                        data: selectedServiceFilter ? { service_id: selectedServiceFilter } : {},
+                        preserveState: true,
+                    });
+                },
             }
         );
     }
@@ -134,7 +147,13 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
             {},
             {
                 preserveScroll: true,
-                onSuccess: () => fetchQueue(selectedServiceFilter),
+                onSuccess: () => {
+                    router.reload({ 
+                        only: ['queueEntries'],
+                        data: selectedServiceFilter ? { service_id: selectedServiceFilter } : {},
+                        preserveState: true,
+                    });
+                },
             }
         );
     }
@@ -145,7 +164,13 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
             {},
             {
                 preserveScroll: true,
-                onSuccess: () => fetchQueue(selectedServiceFilter),
+                onSuccess: () => {
+                    router.reload({ 
+                        only: ['queueEntries'],
+                        data: selectedServiceFilter ? { service_id: selectedServiceFilter } : {},
+                        preserveState: true,
+                    });
+                },
             }
         );
     }
@@ -157,7 +182,13 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
                 {},
                 {
                     preserveScroll: true,
-                    onSuccess: () => fetchQueue(selectedServiceFilter),
+                    onSuccess: () => {
+                        router.reload({ 
+                            only: ['queueEntries'],
+                            data: selectedServiceFilter ? { service_id: selectedServiceFilter } : {},
+                            preserveState: true,
+                        });
+                    },
                 }
             );
         }
@@ -166,7 +197,11 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
     function handleFilterChange(serviceId: string) {
         const id = serviceId === 'all' ? undefined : parseInt(serviceId);
         setSelectedServiceFilter(id);
-        fetchQueue(id);
+        router.reload({ 
+            only: ['queueEntries'],
+            data: id ? { service_id: id } : {},
+            preserveState: true,
+        });
     }
 
     function getStatusBadge(status: QueueEntry['status']) {
@@ -201,103 +236,110 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Fila de Atendimento" />
             
-            <div className="container mx-auto p-6">
+            <div className="container mx-auto p-6 space-y-6">
                 {/* Cabeçalho */}
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-3xl font-bold">Fila de Atendimento</h1>
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                            Fila de Atendimento
+                        </h1>
+                        <p className="text-muted-foreground mt-2">Gerencie a fila de pacientes</p>
+                    </div>
                     <div className="flex gap-2">
-                        <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-                            <DialogTrigger asChild>
-                                <Button>
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Adicionar à Fila
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Adicionar Paciente à Fila</DialogTitle>
-                                </DialogHeader>
-                                <form onSubmit={handleAddToQueue} className="space-y-4 mt-4">
-                                    <div>
-                                        <Label htmlFor="patient_id">Paciente *</Label>
-                                        <Select
-                                            value={data.patient_id}
-                                            onValueChange={(value) => setData('patient_id', value)}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Selecione um paciente" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {patients.map((patient) => (
-                                                    <SelectItem key={patient.id} value={patient.id.toString()}>
-                                                        {patient.name} {patient.document && `- ${patient.document}`}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <InputError message={errors.patient_id} />
-                                    </div>
+                        {(isTriagist || isAdmin) && (
+                            <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+                                <DialogTrigger asChild>
+                                    <Button>
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        Adicionar à Fila
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Adicionar Paciente à Fila</DialogTitle>
+                                    </DialogHeader>
+                                    <form onSubmit={handleAddToQueue} className="space-y-4 mt-4">
+                                        <div>
+                                            <Label htmlFor="patient_id">Paciente *</Label>
+                                            <Select
+                                                value={data.patient_id}
+                                                onValueChange={(value) => setData('patient_id', value)}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecione um paciente" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {patients.map((patient) => (
+                                                        <SelectItem key={patient.id} value={patient.id.toString()}>
+                                                            {patient.name} {patient.document && `- ${patient.document}`}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <InputError message={errors.patient_id} />
+                                        </div>
 
-                                    <div>
-                                        <Label htmlFor="service_id">Serviço *</Label>
-                                        <Select
-                                            value={data.service_id}
-                                            onValueChange={(value) => setData('service_id', value)}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Selecione um serviço" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {services.map((service) => (
-                                                    <SelectItem key={service.id} value={service.id.toString()}>
-                                                        {service.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <InputError message={errors.service_id} />
-                                    </div>
+                                        <div>
+                                            <Label htmlFor="service_id">Serviço *</Label>
+                                            <Select
+                                                value={data.service_id}
+                                                onValueChange={(value) => setData('service_id', value)}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Selecione um serviço" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {services.map((service) => (
+                                                        <SelectItem key={service.id} value={service.id.toString()}>
+                                                            {service.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <InputError message={errors.service_id} />
+                                        </div>
 
-                                    <div>
-                                        <Label htmlFor="priority">Prioridade</Label>
-                                        <Select
-                                            value={data.priority}
-                                            onValueChange={(value) => setData('priority', value)}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="1">1 - Emergência</SelectItem>
-                                                <SelectItem value="2">2 - Urgente</SelectItem>
-                                                <SelectItem value="3">3 - Alta</SelectItem>
-                                                <SelectItem value="4">4 - Média</SelectItem>
-                                                <SelectItem value="5">5 - Baixa</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <InputError message={errors.priority} />
-                                    </div>
+                                        <div>
+                                            <Label htmlFor="priority">Prioridade</Label>
+                                            <Select
+                                                value={data.priority}
+                                                onValueChange={(value) => setData('priority', value)}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="1">1 - Emergência</SelectItem>
+                                                    <SelectItem value="2">2 - Urgente</SelectItem>
+                                                    <SelectItem value="3">3 - Alta</SelectItem>
+                                                    <SelectItem value="4">4 - Média</SelectItem>
+                                                    <SelectItem value="5">5 - Baixa</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <InputError message={errors.priority} />
+                                        </div>
 
-                                    <div className="flex gap-2 justify-end">
-                                        <Button 
-                                            type="button" 
-                                            variant="outline"
-                                            onClick={() => setShowAddModal(false)}
-                                        >
-                                            Cancelar
-                                        </Button>
-                                        <Button type="submit" disabled={processing}>
-                                            {processing ? 'Adicionando...' : 'Adicionar'}
-                                        </Button>
-                                    </div>
-                                </form>
-                            </DialogContent>
-                        </Dialog>
+                                        <div className="flex gap-2 justify-end">
+                                            <Button 
+                                                type="button" 
+                                                variant="outline"
+                                                onClick={() => setShowAddModal(false)}
+                                            >
+                                                Cancelar
+                                            </Button>
+                                            <Button type="submit" disabled={processing}>
+                                                {processing ? 'Adicionando...' : 'Adicionar'}
+                                            </Button>
+                                        </div>
+                                    </form>
+                                </DialogContent>
+                            </Dialog>
+                        )}
                     </div>
                 </div>
 
                 {/* Filtros e Ações */}
-                <div className="flex gap-4 mb-6">
+                <div className="flex gap-4">
                     <div className="flex-1">
                         <Label htmlFor="service_filter">Filtrar por Serviço</Label>
                         <Select
@@ -317,51 +359,70 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
                             </SelectContent>
                         </Select>
                     </div>
-                    <div className="flex items-end">
-                        <Button 
-                            onClick={handleCallNext}
-                            disabled={waitingEntries.length === 0 || isRefreshing}
-                            variant="secondary"
-                        >
-                            <Phone className="mr-2 h-4 w-4" />
-                            Chamar Próximo
-                        </Button>
-                    </div>
+                    {(isDoctor || isAdmin) && (
+                        <div className="flex items-end">
+                            <Button 
+                                onClick={handleCallNext}
+                                disabled={waitingEntries.length === 0 || isRefreshing}
+                                variant="secondary"
+                            >
+                                <Phone className="mr-2 h-4 w-4" />
+                                Chamar Próximo
+                            </Button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Estatísticas Rápidas */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium">Aguardando</CardTitle>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950/20 dark:to-yellow-900/10">
+                        <div className="absolute top-0 right-0 w-20 h-20 bg-yellow-500/10 rounded-full -mr-10 -mt-10"></div>
+                        <CardHeader className="pb-2 relative z-10">
+                            <CardTitle className="text-sm font-medium text-yellow-700 dark:text-yellow-300">Aguardando</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{waitingEntries.length}</div>
+                        <CardContent className="relative z-10">
+                            <div className="text-3xl font-bold text-yellow-900 dark:text-yellow-100">{waitingEntries.length}</div>
+                            <div className="mt-3 flex items-center gap-2">
+                                <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                                <span className="text-xs text-yellow-600 dark:text-yellow-400">Na fila</span>
+                            </div>
                         </CardContent>
                     </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium">Chamados</CardTitle>
+                    <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/10">
+                        <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full -mr-10 -mt-10"></div>
+                        <CardHeader className="pb-2 relative z-10">
+                            <CardTitle className="text-sm font-medium text-blue-700 dark:text-blue-300">Chamados</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{calledEntries.length}</div>
+                        <CardContent className="relative z-10">
+                            <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">{calledEntries.length}</div>
+                            <div className="mt-3 flex items-center gap-2">
+                                <Phone className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                <span className="text-xs text-blue-600 dark:text-blue-400">Aguardando início</span>
+                            </div>
                         </CardContent>
                     </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium">Em Atendimento</CardTitle>
+                    <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/10">
+                        <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-full -mr-10 -mt-10"></div>
+                        <CardHeader className="pb-2 relative z-10">
+                            <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">Em Atendimento</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{inServiceEntries.length}</div>
+                        <CardContent className="relative z-10">
+                            <div className="text-3xl font-bold text-green-900 dark:text-green-100">{inServiceEntries.length}</div>
+                            <div className="mt-3 flex items-center gap-2">
+                                <Stethoscope className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                <span className="text-xs text-green-600 dark:text-green-400">Ativos</span>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
 
                 {/* Lista da Fila */}
                 {queueEntries.length === 0 ? (
-                    <Card>
-                        <CardContent className="p-6 text-center text-gray-500">
-                            Nenhum paciente na fila no momento.
+                    <Card className="border-0 shadow-lg">
+                        <CardContent className="p-12 text-center">
+                            <Clock className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                            <p className="text-lg font-semibold text-muted-foreground mb-2">Nenhum paciente na fila</p>
+                            <p className="text-sm text-muted-foreground">A fila está vazia no momento</p>
                         </CardContent>
                     </Card>
                 ) : (
@@ -374,8 +435,12 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
                                     Aguardando ({waitingEntries.length})
                                 </h2>
                                 <div className="grid gap-3">
-                                    {waitingEntries.map((entry) => (
-                                        <Card key={entry.id}>
+                                    {waitingEntries.map((entry, index) => (
+                                        <Card 
+                                            key={entry.id}
+                                            className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-r from-yellow-50/50 to-background dark:from-yellow-950/10 dark:to-background"
+                                            style={{ animationDelay: `${index * 50}ms` }}
+                                        >
                                             <CardContent className="p-4">
                                                 <div className="flex justify-between items-start">
                                                     <div className="flex-1">
@@ -401,20 +466,24 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
                                                         </div>
                                                     </div>
                                                     <div className="flex gap-2">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="secondary"
-                                                            onClick={() => handleCall(entry.id)}
-                                                        >
-                                                            <Phone className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="destructive"
-                                                            onClick={() => handleCancel(entry.id)}
-                                                        >
-                                                            <X className="h-4 w-4" />
-                                                        </Button>
+                                                        {(isDoctor || isAdmin) && (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="secondary"
+                                                                onClick={() => handleCall(entry.id)}
+                                                            >
+                                                                <Phone className="h-4 w-4" />
+                                                            </Button>
+                                                        )}
+                                                        {(isTriagist || isAdmin) && (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="destructive"
+                                                                onClick={() => handleCancel(entry.id)}
+                                                            >
+                                                                <X className="h-4 w-4" />
+                                                            </Button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </CardContent>
@@ -432,8 +501,12 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
                                     Chamados ({calledEntries.length})
                                 </h2>
                                 <div className="grid gap-3">
-                                    {calledEntries.map((entry) => (
-                                        <Card key={entry.id} className="border-yellow-500">
+                                    {calledEntries.map((entry, index) => (
+                                        <Card 
+                                            key={entry.id} 
+                                            className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-r from-blue-50/50 to-background dark:from-blue-950/10 dark:to-background border-l-4 border-blue-500"
+                                            style={{ animationDelay: `${index * 50}ms` }}
+                                        >
                                             <CardContent className="p-4">
                                                 <div className="flex justify-between items-start">
                                                     <div className="flex-1">
@@ -456,20 +529,24 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
                                                         </div>
                                                     </div>
                                                     <div className="flex gap-2">
-                                                        <Button
-                                                            size="sm"
-                                                            onClick={() => handleStart(entry.id)}
-                                                        >
-                                                            <Play className="h-4 w-4 mr-1" />
-                                                            Iniciar
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="destructive"
-                                                            onClick={() => handleCancel(entry.id)}
-                                                        >
-                                                            <X className="h-4 w-4" />
-                                                        </Button>
+                                                        {(isDoctor || isAdmin) && (
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => handleStart(entry.id)}
+                                                            >
+                                                                <Play className="h-4 w-4 mr-1" />
+                                                                Iniciar
+                                                            </Button>
+                                                        )}
+                                                        {(isTriagist || isAdmin) && (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="destructive"
+                                                                onClick={() => handleCancel(entry.id)}
+                                                            >
+                                                                <X className="h-4 w-4" />
+                                                            </Button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </CardContent>
@@ -487,8 +564,12 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
                                     Em Atendimento ({inServiceEntries.length})
                                 </h2>
                                 <div className="grid gap-3">
-                                    {inServiceEntries.map((entry) => (
-                                        <Card key={entry.id} className="border-green-500">
+                                    {inServiceEntries.map((entry, index) => (
+                                        <Card 
+                                            key={entry.id} 
+                                            className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-gradient-to-r from-green-50/50 to-background dark:from-green-950/10 dark:to-background border-l-4 border-green-500"
+                                            style={{ animationDelay: `${index * 50}ms` }}
+                                        >
                                             <CardContent className="p-4">
                                                 <div className="flex justify-between items-start">
                                                     <div className="flex-1">
@@ -511,14 +592,16 @@ export default function QueueIndex({ queueEntries, services, patients, selectedS
                                                         </div>
                                                     </div>
                                                     <div className="flex gap-2">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="default"
-                                                            onClick={() => handleFinish(entry.id)}
-                                                        >
-                                                            <CheckCircle className="h-4 w-4 mr-1" />
-                                                            Finalizar
-                                                        </Button>
+                                                        {(isDoctor || isAdmin) && (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="default"
+                                                                onClick={() => handleFinish(entry.id)}
+                                                            >
+                                                                <CheckCircle className="h-4 w-4 mr-1" />
+                                                                Finalizar
+                                                            </Button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </CardContent>

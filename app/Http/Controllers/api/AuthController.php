@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -66,38 +67,19 @@ class AuthController extends Controller
 }
 
     public function login(Request $request){
+        // Este método é apenas para API REST
+        // O login via web usa Fortify diretamente
         $credentials = $request->validate([
             'email'=>'required|email',
             'password'=>'required|string'
         ]);
-        if(!auth()->attempt($credentials)){
+        
+        if(!Auth::attempt($credentials)){
             return response()->json(['message'=>'Credenciais inválidas'],401);
         }
+        
         $user = $request->user();
         $token = $user->createToken('api-token')->plainTextToken;
-
-        if ($user->function === 'admin') {
-            return response()->json([
-                'message' => 'Login realizado com sucesso',
-                'token' => $token,
-                'user' => $user,
-                'redirect' => '/api/dashboard/admin'
-            ], 200);
-        } elseif ($user->function === 'triagist') {
-            return response()->json([
-                'message' => 'Login realizado com sucesso',
-                'token' => $token,
-                'user' => $user,
-                'redirect' => '/api/dashboard/triagist'
-            ], 200);
-        } elseif ($user->function === 'doctor') {
-            return response()->json([
-                'message' => 'Login realizado com sucesso',
-                'token' => $token,
-                'user' => $user,
-                'redirect' => '/api/dashboard/doctor'
-            ], 200);
-        }
 
         return response()->json([
             'message' => 'Login realizado com sucesso',
@@ -106,12 +88,23 @@ class AuthController extends Controller
         ], 200);
     }
 
+    
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
-
-        return response()->json(['message' => 'Logged out successfully'], 200);
+        // Verifica se o usuário está autenticado
+        $user = $request->user();
+    
+        if ($user) {
+            // Revoga APENAS o token atual
+            $user->currentAccessToken()->delete();
+    
+            return response()->json([
+                'message' => 'Logout realizado com sucesso!'
+            ], 200);
+        }
+    
+        return response()->json([
+            'message' => 'Usuário não autenticado.'
+        ], 401);
     }
-   
-
-}
+    
