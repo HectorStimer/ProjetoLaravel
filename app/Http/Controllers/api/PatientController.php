@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
 use App\Models\Patient;
@@ -52,7 +52,15 @@ class PatientController extends Controller
         if (!$patient){
             return response()->json(['message'=>'Paciente não encontrado'],404);
         }
-        $patient->update($request->all());
+
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:50',
+            'birth_date' => 'sometimes|required|date|before:today|after:1900-01-01',
+            'document' => 'sometimes|nullable|string|max:20|unique:patients,document,' . $id,
+            'phone' => 'sometimes|nullable|string|max:15'
+        ]);
+
+        $patient->update($validated);
         return response()->json($patient);
     }
     #destruir legal 

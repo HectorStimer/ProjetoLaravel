@@ -15,6 +15,7 @@ class TriageController extends Controller
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
             'triagist_id' => 'nullable|exists:users,id',
+            'service_id' => 'nullable|exists:services,id',
             'score' => 'required|integer|min:1|max:5',
             'notes' => 'nullable|string',
         ]);
@@ -26,16 +27,19 @@ class TriageController extends Controller
 
         $triage = Triage::create($validated);
 
-        // Enfileira automaticamente (opcional)
-        QueueEntry::updateOrCreate(
-            ['patient_id' => $validated['patient_id']],
-            [
-                'service_id' => 1,
-                'status' => 'waiting',
-                'priority' => $validated['score'],
-                'arrived_at' => now(),
-            ]
-        );
+        // Enfileira automaticamente apenas se service_id for fornecido
+        if (isset($validated['service_id']) && $validated['service_id']) {
+            QueueEntry::updateOrCreate(
+                ['patient_id' => $validated['patient_id']],
+                [
+                    'service_id' => $validated['service_id'],
+                    'status' => 'waiting',
+                    'priority' => $validated['score'],
+                    'arrived_at' => now(),
+                    'created_by' => auth()->id(),
+                ]
+            );
+        }
 
         return response()->json($triage, 201);
     }

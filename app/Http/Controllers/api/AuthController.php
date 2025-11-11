@@ -11,8 +11,8 @@ class AuthController extends Controller
 {
 
     public function register(Request $request)
-{
-    $userFunctions = ["admin", "triagist", "doctor"];
+    {
+        $userFunctions = ["admin", "triagist", "doctor"];
 
     $validated = $request->validate([
         'name' => 'required|string|max:50',
@@ -26,13 +26,8 @@ class AuthController extends Controller
     }
 
     $validated['password'] = Hash::make($validated['password']);
+    $validated['function'] = $request->function;
     $user = User::create($validated);
-    
-
-    
-
-    $user->function = $request->function;
-    $user->save();
 
     $token = $user->createToken('api-token')->plainTextToken;
 
@@ -78,7 +73,7 @@ class AuthController extends Controller
             return response()->json(['message'=>'Credenciais inválidas'],401);
         }
         
-        $user = $request->user();
+        $user = Auth::user();
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
@@ -107,4 +102,4 @@ class AuthController extends Controller
             'message' => 'Usuário não autenticado.'
         ], 401);
     }
-    
+}

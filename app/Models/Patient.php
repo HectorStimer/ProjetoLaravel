@@ -13,4 +13,12 @@ class Patient extends Model
         'created_by',
         'phone'
     ];
+
+    /**
+     * Relacionamento com o usuário que criou o registro
+     */
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }
