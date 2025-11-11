@@ -10,17 +10,13 @@ use Inertia\Response;
 
 class QueueDisplayController extends Controller
 {
-    /**
-     * Telão público da fila - sem autenticação
-     */
+    
     public function index(Request $request): Response
     {
         $query = QueueEntry::with(['patient', 'service'])
             ->whereIn('status', ['waiting', 'called', 'in_service'])
             ->orderBy('priority', 'asc')
             ->orderBy('arrived_at', 'asc');
-
-        // Filtro por serviço se fornecido
         if ($request->has('service_id')) {
             $query->where('service_id', $request->service_id);
         }
@@ -28,7 +24,7 @@ class QueueDisplayController extends Controller
         $queueEntries = $query->get();
         $services = Service::all();
 
-        // Separar por status
+       
         $waiting = $queueEntries->where('status', 'waiting')->values();
         $called = $queueEntries->where('status', 'called')->values();
         $inService = $queueEntries->where('status', 'in_service')->values();
@@ -42,9 +38,7 @@ class QueueDisplayController extends Controller
         ]);
     }
 
-    /**
-     * API para atualização em tempo real do telão
-     */
+   
     public function api(Request $request)
     {
         $query = QueueEntry::with(['patient', 'service'])

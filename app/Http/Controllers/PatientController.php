@@ -16,28 +16,23 @@ class PatientController extends Controller
     {
         $patients = Patient::orderBy('created_at', 'desc')->get();
         
-        // Se for requisição API, retornar JSON
+    
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json($patients);
         }
-        
-        // Caso contrário, retornar Inertia
+      
         return Inertia::render('patients/index', [
             'patients' => $patients
         ]);
     }
     
-    /**
-     * Mostrar formulário de criação
-     */
+    
     public function create(): Response
     {
         return Inertia::render('patients/create');
     }
     
-    /**
-     * Salvar novo paciente
-     */
+   
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -51,35 +46,29 @@ class PatientController extends Controller
         
         $patient = Patient::create($validated);
         
-        // Se for requisição API, retornar JSON
+    
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json($patient, 201);
         }
         
-        // Caso contrário, redirecionar
         return redirect()->route('patients.index')
             ->with('success', 'Paciente criado com sucesso!');
     }
     
-    /**
-     * Mostrar paciente específico
-     */
+   
     public function show(Request $request, Patient $patient)
     {
-        // Se for requisição API, retornar JSON
+      
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json($patient);
         }
-        
-        // Caso contrário, retornar Inertia
+   
         return Inertia::render('patients/show', [
             'patient' => $patient
         ]);
     }
     
-    /**
-     * Mostrar formulário de edição
-     */
+    
     public function edit(Patient $patient): Response
     {
         return Inertia::render('patients/edit', [
@@ -87,9 +76,7 @@ class PatientController extends Controller
         ]);
     }
     
-    /**
-     * Atualizar paciente
-     */
+   
     public function update(Request $request, Patient $patient)
     {
         $validated = $request->validate([
@@ -101,29 +88,26 @@ class PatientController extends Controller
         
         $patient->update($validated);
         
-        // Se for requisição API, retornar JSON
+  
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json($patient);
         }
         
-        // Caso contrário, redirecionar
+
         return redirect()->route('patients.index')
             ->with('success', 'Paciente atualizado com sucesso!');
     }
     
-    /**
-     * Deletar paciente
-     */
+   
     public function destroy(Request $request, Patient $patient)
     {
         $patient->delete();
         
-        // Se for requisição API, retornar JSON
+    
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json(null, 204);
         }
         
-        // Caso contrário, redirecionar
         return redirect()->route('patients.index')
             ->with('success', 'Paciente deletado com sucesso!');
     }

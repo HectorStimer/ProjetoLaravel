@@ -12,15 +12,13 @@ use Inertia\Response;
 
 class TriageController extends Controller
 {
-    /**
-     * Listar todas as triagens
-     */
+    
     public function index(Request $request): Response
     {
         $query = Triage::with(['patient', 'triagist'])
             ->orderBy('created_at', 'desc');
 
-        // Filtros
+       
         if ($request->has('patient_id')) {
             $query->where('patient_id', $request->patient_id);
         }
@@ -38,9 +36,6 @@ class TriageController extends Controller
         ]);
     }
 
-    /**
-     * Mostrar formulário de criação
-     */
     public function create(): Response
     {
         $patients = Patient::orderBy('name')->get();
@@ -52,9 +47,7 @@ class TriageController extends Controller
         ]);
     }
 
-    /**
-     * Salvar nova triagem
-     */
+    
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -94,9 +87,7 @@ class TriageController extends Controller
             ->with('success', 'Triagem criada com sucesso!');
     }
 
-    /**
-     * Mostrar triagem específica
-     */
+    
     public function show(Triage $triage): Response
     {
         $triage->load(['patient', 'triagist']);
@@ -106,9 +97,7 @@ class TriageController extends Controller
         ]);
     }
 
-    /**
-     * Deletar triagem
-     */
+    
     public function destroy(Triage $triage)
     {
         $triage->delete();

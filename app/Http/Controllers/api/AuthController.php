@@ -62,7 +62,6 @@ class AuthController extends Controller
 }
 
     public function login(Request $request){
-        // Este método é apenas para API REST
         // O login via web usa Fortify diretamente
         $credentials = $request->validate([
             'email'=>'required|email',
@@ -86,11 +85,11 @@ class AuthController extends Controller
     
     public function logout(Request $request)
     {
-        // Verifica se o usuário está autenticado via Sanctum
-        $user = $request->user('sanctum');
+        
+        $user = $request->user('sanctum'); // verifica se o usuario esta autenticado via Sanctum
     
         if ($user) {
-            // Revoga TODOS os tokens do usuário (não apenas o atual)
+        
             $user->tokens()->delete();
     
             return response()->json([

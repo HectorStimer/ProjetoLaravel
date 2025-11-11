@@ -8,9 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureUserIsDoctor
 {
-    /**
-     * Handle an incoming request.
-     */
+   
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();

@@ -8,24 +8,20 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ApiAuth
 {
-    /**
-     * Handle an incoming request.
-     * Aceita autenticação via sessão (web) ou token (sanctum)
-     */
+    
     public function handle(Request $request, Closure $next): Response
     {
-        // Tenta autenticar via sessão primeiro (para Inertia/Fortify)
+        //autenticação via sessão (web)
         if (auth('web')->check()) {
             // Define o usuário autenticado para o guard padrão
             auth()->setUser(auth('web')->user());
             return $next($request);
         }
 
-        // Se não estiver autenticado via sessão, tenta via Sanctum (token)
+        // se nao, via sanctum token
         $token = $request->bearerToken();
         if ($token) {
-            // Tenta autenticar usando o token Sanctum
-            // O método user('sanctum') valida automaticamente o token Bearer
+            
             $user = $request->user('sanctum');
             
             if ($user) {
@@ -35,7 +31,7 @@ class ApiAuth
             }
         }
 
-        // Para requisições JSON/API, retorna 401 se não autenticado
+        // 401 se nao autenticado
         if ($request->expectsJson() || $request->wantsJson() || $request->is('api/*')) {
             return response()->json(['message' => 'Não autenticado'], 401);
         }

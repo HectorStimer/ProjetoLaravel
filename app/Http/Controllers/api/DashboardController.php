@@ -79,9 +79,7 @@ class DashboardController extends Controller
         ]);
     }
 
-    /**
-     * Dashboard do administrador
-     */
+   
     public function adminDashboard()
     {
         $summaryResponse = $this->summary();
@@ -98,9 +96,7 @@ class DashboardController extends Controller
         return response()->json($data);
     }
 
-    /**
-     * Dashboard do triagista
-     */
+    
     public function triagistDashboard()
     {
         $triageStatsResponse = $this->getTriageStatistics();
@@ -121,9 +117,6 @@ class DashboardController extends Controller
         return response()->json($data);
     }
 
-    /**
-     * Dashboard do médico
-     */
     public function doctorDashboard()
     {
         $data = [
@@ -143,9 +136,6 @@ class DashboardController extends Controller
         return response()->json($data);
     }
 
-    /**
-     * Estatísticas de status da fila
-     */
     public function getQueueStatusStats()
     {
         $stats = QueueEntry::selectRaw('status, COUNT(*) as count')
@@ -162,9 +152,7 @@ class DashboardController extends Controller
         ]);
     }
 
-    /**
-     * Estatísticas diárias
-     */
+   
     public function getDailyStats()
     {
         $today = now()->toDateString();

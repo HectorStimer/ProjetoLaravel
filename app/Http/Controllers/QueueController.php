@@ -11,9 +11,7 @@ use Inertia\Response;
 
 class QueueController extends Controller
 {
-    /**
-     * Listar fila atual
-     */
+   
     public function index(Request $request): Response
     {
         $query = QueueEntry::with(['patient', 'service'])
@@ -21,7 +19,7 @@ class QueueController extends Controller
             ->orderBy('priority', 'asc')
             ->orderBy('arrived_at', 'asc');
 
-        // Filtro por serviço se fornecido
+     
         if ($request->has('service_id')) {
             $query->where('service_id', $request->service_id);
         }
@@ -38,9 +36,7 @@ class QueueController extends Controller
         ]);
     }
 
-    /**
-     * Adicionar paciente à fila
-     */
+ 
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -62,9 +58,7 @@ class QueueController extends Controller
             ->with('success', 'Paciente adicionado à fila com sucesso!');
     }
 
-    /**
-     * Chamar paciente específico
-     */
+    
     public function call($id)
     {
         $queueEntry = QueueEntry::findOrFail($id);
@@ -82,9 +76,7 @@ class QueueController extends Controller
             ->with('success', 'Paciente chamado com sucesso!');
     }
 
-    /**
-     * Chamar o próximo paciente da fila
-     */
+    
     public function callNext(Request $request)
     {
         $serviceId = $request->input('service_id');
@@ -112,9 +104,7 @@ class QueueController extends Controller
             ->with('success', 'Próximo paciente chamado com sucesso!');
     }
 
-    /**
-     * Iniciar atendimento
-     */
+    
     public function start($id)
     {
         $queueEntry = QueueEntry::findOrFail($id);
@@ -132,9 +122,7 @@ class QueueController extends Controller
             ->with('success', 'Atendimento iniciado com sucesso!');
     }
 
-    /**
-     * Finalizar atendimento
-     */
+    
     public function finish($id)
     {
         $queueEntry = QueueEntry::findOrFail($id);

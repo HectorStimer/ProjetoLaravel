@@ -7,17 +7,12 @@ use App\Models\Service;
 
 class ServiceController extends Controller
 {
-    /**
-     * Listar todos os serviços
-     */
+
     public function index()
     {
         return response()->json(Service::all());
     }
 
-    /**
-     * Criar novo serviço
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -30,9 +25,7 @@ class ServiceController extends Controller
         return response()->json($service, 201);
     }
 
-    /**
-     * Mostrar serviço específico
-     */
+   
     public function show($id)
     {
         $service = Service::find($id);
@@ -44,9 +37,6 @@ class ServiceController extends Controller
         return response()->json($service);
     }
 
-    /**
-     * Atualizar serviço
-     */
     public function update(Request $request, $id)
     {
         $service = Service::find($id);
@@ -65,9 +55,7 @@ class ServiceController extends Controller
         return response()->json($service);
     }
 
-    /**
-     * Deletar serviço
-     */
+    
     public function destroy($id)
     {
         $service = Service::find($id);

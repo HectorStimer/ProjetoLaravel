@@ -14,6 +14,7 @@ Route::get('/', function () {
 Route::get('display', [\App\Http\Controllers\QueueDisplayController::class, 'index'])->name('queue.display');
 Route::get('api/display', [\App\Http\Controllers\QueueDisplayController::class, 'api'])->name('queue.display.api');
 
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     
@@ -43,6 +44,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('triage', [\App\Http\Controllers\TriageController::class, 'store'])->middleware(\App\Http\Middleware\EnsureUserIsTriagist::class)->name('triage.store');
     Route::get('triage/{triage}', [\App\Http\Controllers\TriageController::class, 'show'])->name('triage.show');
     Route::delete('triage/{triage}', [\App\Http\Controllers\TriageController::class, 'destroy'])->middleware(\App\Http\Middleware\EnsureUserIsAdmin::class)->name('triage.destroy');
+    
+    Route::post('/logout', function (\Illuminate\Http\Request $request) {
+        \Illuminate\Support\Facades\Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect('/login');
+    })->middleware('auth');
 });
 
 require __DIR__.'/settings.php';

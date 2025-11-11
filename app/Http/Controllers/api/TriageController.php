@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class TriageController extends Controller
 {
-    // Criar nova triagem
+    
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -27,7 +27,7 @@ class TriageController extends Controller
 
         $triage = Triage::create($validated);
 
-        // Enfileira automaticamente apenas se service_id for fornecido
+        
         if (isset($validated['service_id']) && $validated['service_id']) {
             QueueEntry::updateOrCreate(
                 ['patient_id' => $validated['patient_id']],
@@ -44,13 +44,11 @@ class TriageController extends Controller
         return response()->json($triage, 201);
     }
 
-    // Listar todas
     public function index()
     {
         return response()->json(Triage::all());
     }
 
-    // Mostrar uma triagem específica
     public function show($id)
     {
         $triage = Triage::find($id);
@@ -60,7 +58,6 @@ class TriageController extends Controller
         return response()->json($triage);
     }
 
-    // Atualizar triagem
     public function update(Request $request, $id)
     {
         $triage = Triage::find($id);
@@ -72,7 +69,6 @@ class TriageController extends Controller
         return response()->json($triage);
     }
 
-    // Deletar triagem
     public function destroy($id)
     {
         $triage = Triage::find($id);
@@ -84,7 +80,6 @@ class TriageController extends Controller
         return response()->json(null, 204);
     }
 
-    // Buscar por filtros (paciente, triagista ou score)
     public function search(Request $request)
     {
         $query = Triage::query();
@@ -102,9 +97,7 @@ class TriageController extends Controller
         return response()->json($query->get());
     }
 
-    /**
-     * Mostrar triagem por paciente
-     */
+    
     public function showByPatient($patientId)
     {
         $triage = Triage::where('patient_id', $patientId)
