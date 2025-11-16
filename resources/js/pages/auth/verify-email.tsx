@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
 import { logout } from '@/routes';
+import { router } from '@inertiajs/react';
 import { send } from '@/routes/verification';
 import { Form, Head } from '@inertiajs/react';
 
@@ -30,12 +31,50 @@ export default function VerifyEmail({ status }: { status?: string }) {
                             Resend verification email
                         </Button>
 
-                        <TextLink
-                            href={logout()}
-                            className="mx-auto block text-sm"
+                        <button
+                            type="button"
+                            onClick={async () => {
+                                try {
+                                    const token = localStorage.getItem('auth_token');
+                                    if (token) {
+                                        try {
+                                            await fetch('/api/logout', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Authorization': `Bearer ${token}`,
+                                                    'Accept': 'application/json',
+                                                    'Content-Type': 'application/json',
+                                                },
+                                                credentials: 'include',
+                                            });
+                                        } catch (e) {
+                                            console.warn('API logout failed', e);
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.warn('Error during logout cleanup', e);
+                                } finally {
+                                    // Clear local tokens and cookies then perform web logout
+                                    try {
+                                        localStorage.removeItem('auth_token');
+                                    } catch (e) {
+                                        // ignore
+                                    }
+
+                                    // Clear cookies
+                                    document.cookie.split(';').forEach((c) => {
+                                        document.cookie = c
+                                            .replace(/^ +/, '')
+                                            .replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
+                                    });
+
+                                    router.post(logout());
+                                }
+                            }}
+                            className="mx-auto block text-sm text-blue-600 hover:underline"
                         >
                             Log out
-                        </TextLink>
+                        </button>
                     </>
                 )}
             </Form>

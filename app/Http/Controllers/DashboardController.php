@@ -51,12 +51,12 @@ class DashboardController extends Controller
             'total_patients' => Patient::count(),
             'active_queue' => QueueEntry::whereIn('status', ['waiting', 'called', 'in_service'])->count(),
             'patients_served_today' => QueueEntry::whereDate('finished_at', now()->toDateString())->count(),
-            'average_wait_time' => QueueEntry::whereNotNull('called_at')
+            'average_wait_time' => (float) (QueueEntry::whereNotNull('called_at')
                 ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, arrived_at, called_at)) as avg')
-                ->value('avg') ?? 0,
-            'average_service_time' => QueueEntry::whereNotNull('finished_at')
+                ->value('avg') ?? 0),
+            'average_service_time' => (float) (QueueEntry::whereNotNull('finished_at')
                 ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, started_at, finished_at)) as avg')
-                ->value('avg') ?? 0,
+                ->value('avg') ?? 0),
         ];
 
         $queueStatus = [
@@ -109,7 +109,7 @@ class DashboardController extends Controller
         $triageStatistics = [
             'total_triages' => Triage::count(),
             'triages_today' => Triage::whereDate('created_at', now()->toDateString())->count(),
-            'average_score' => Triage::avg('score') ?? 0,
+            'average_score' => (float) (Triage::avg('score') ?? 0),
         ];
 
         return Inertia::render('dashboard', [
@@ -156,12 +156,12 @@ class DashboardController extends Controller
             'total_patients' => Patient::count(),
             'active_queue' => QueueEntry::whereIn('status', ['waiting', 'called', 'in_service'])->count(),
             'patients_served_today' => QueueEntry::whereDate('finished_at', now()->toDateString())->count(),
-            'average_wait_time' => QueueEntry::whereNotNull('called_at')
+            'average_wait_time' => (float) (QueueEntry::whereNotNull('called_at')
                 ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, arrived_at, called_at)) as avg')
-                ->value('avg') ?? 0,
-            'average_service_time' => QueueEntry::whereNotNull('finished_at')
+                ->value('avg') ?? 0),
+            'average_service_time' => (float) (QueueEntry::whereNotNull('finished_at')
                 ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, started_at, finished_at)) as avg')
-                ->value('avg') ?? 0,
+                ->value('avg') ?? 0),
         ];
 
         return response()->json($data);
@@ -219,14 +219,14 @@ class DashboardController extends Controller
             'triages_performed' => Triage::whereDate('created_at', $today)->count(),
             'patients_served' => QueueEntry::whereDate('finished_at', $today)->count(),
             'patients_in_queue' => QueueEntry::whereIn('status', ['waiting', 'called', 'in_service'])->count(),
-            'average_wait_time' => QueueEntry::whereNotNull('called_at')
+            'average_wait_time' => (float) (QueueEntry::whereNotNull('called_at')
                 ->whereDate('called_at', $today)
                 ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, arrived_at, called_at)) as avg')
-                ->value('avg') ?? 0,
-            'average_service_time' => QueueEntry::whereNotNull('finished_at')
+                ->value('avg') ?? 0),
+            'average_service_time' => (float) (QueueEntry::whereNotNull('finished_at')
                 ->whereDate('finished_at', $today)
                 ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, started_at, finished_at)) as avg')
-                ->value('avg') ?? 0,
+                ->value('avg') ?? 0),
         ];
 
         return response()->json($data);

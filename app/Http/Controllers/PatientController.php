@@ -9,9 +9,7 @@ use Inertia\Response;
 
 class PatientController extends Controller
 {
-    /**
-     * Listar todos os pacientes
-     */
+    
     public function index(Request $request)
     {
         $patients = Patient::orderBy('created_at', 'desc')->get();

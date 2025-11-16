@@ -19,51 +19,18 @@ interface UserMenuContentProps {
 export function UserMenuContent({ user }: UserMenuContentProps) {
     const cleanup = useMobileNavigation();
 
-    const handleLogout = async (e: React.MouseEvent) => {
+    const handleLogout = (e: React.MouseEvent) => {
         e.preventDefault();
         cleanup();
         
-        try {
-            // Primeiro, tenta fazer logout via API (para limpar tokens Sanctum)
-            const token = localStorage.getItem('auth_token');
-            if (token) {
-                try {
-                    await fetch('/api/logout', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json',
-                        },
-                        credentials: 'include',
-                    });
-                } catch (error) {
-                    // Ignora erros da API de logout (pode já estar deslogado)
-                    console.warn('Erro ao fazer logout via API:', error);
-                }
+        // Simples: fazer POST para /logout que vai invalidar session no servidor
+        // e redirecionar para /login
+        router.post(logout(), {}, {
+            onFinish: () => {
+                // Limpar cache do Inertia após logout
+                router.flushAll();
             }
-        } catch (error) {
-            console.warn('Erro ao processar logout:', error);
-        } finally {
-            // Limpar token do localStorage
-            localStorage.removeItem('auth_token');
-            
-            // Limpar cookies relacionados
-            document.cookie.split(";").forEach((c) => {
-                document.cookie = c
-                    .replace(/^ +/, "")
-                    .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-            });
-            
-            // Fazer logout via Inertia (Fortify)
-            router.post(logout(), {}, {
-                onFinish: () => {
-                    router.flushAll();
-                    // Forçar redirecionamento para garantir que funcione
-                    window.location.href = '/';
-                },
-            });
-        }
+        });
     };
 
     return (
@@ -96,7 +63,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                     data-test="logout-button"
                 >
                     <LogOut className="mr-2" />
-                    Log out
+                    Sign out
                 </button>
             </DropdownMenuItem>
         </>

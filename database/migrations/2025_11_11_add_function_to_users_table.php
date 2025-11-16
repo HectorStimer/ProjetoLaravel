@@ -11,11 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->enum('function', ['admin', 'triagist', 'doctor'])
-                ->default('doctor')
-                ->after('password');
-        });
+        // Guard against running this migration when the column already exists
+        if (!Schema::hasColumn('users', 'function')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->enum('function', ['admin', 'triagist', 'doctor'])
+                    ->default('doctor')
+                    ->after('password');
+            });
+        }
     }
 
     /**
@@ -23,8 +26,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('function');
-        });
+        // Only drop if the column exists
+        if (Schema::hasColumn('users', 'function')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->dropColumn('function');
+            });
+        }
     }
 };

@@ -10,12 +10,20 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+// Auth routes (custom controller replacing Fortify registration/login)
+Route::get('/login', [\App\Http\Controllers\Auth\AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [\App\Http\Controllers\Auth\AuthController::class, 'login']);
+
+Route::get('/register', [\App\Http\Controllers\Auth\AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [\App\Http\Controllers\Auth\AuthController::class, 'register']);
+
 // Telão público da fila (sem autenticação)
 Route::get('display', [\App\Http\Controllers\QueueDisplayController::class, 'index'])->name('queue.display');
-Route::get('api/display', [\App\Http\Controllers\QueueDisplayController::class, 'api'])->name('queue.display.api');
+// API JSON endpoint for the public queue display (named under web routes because api.php is disabled)
+Route::get('display/api', [\App\Http\Controllers\QueueDisplayController::class, 'api'])->name('queue.display.api');
 
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     
     // Rotas de Pacientes - Apenas Triagistas e Admins podem criar/editar
@@ -45,12 +53,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('triage/{triage}', [\App\Http\Controllers\TriageController::class, 'show'])->name('triage.show');
     Route::delete('triage/{triage}', [\App\Http\Controllers\TriageController::class, 'destroy'])->middleware(\App\Http\Middleware\EnsureUserIsAdmin::class)->name('triage.destroy');
     
-    Route::post('/logout', function (\Illuminate\Http\Request $request) {
-        \Illuminate\Support\Facades\Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        return redirect('/login');
-    })->middleware('auth');
+    Route::post('/logout', \App\Http\Controllers\Auth\LogoutController::class)
+        ->middleware('auth')
+        ->name('logout');
 });
 
 require __DIR__.'/settings.php';

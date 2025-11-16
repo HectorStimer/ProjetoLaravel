@@ -53,6 +53,17 @@ class ProfileController extends Controller
 
         Auth::logout();
 
+        // Delete or cascade-handle related records to avoid FK constraint violations
+        // Triages: delete triages created by this user (triagist)
+        \App\Models\Triage::where('triagist_id', $user->id)->delete();
+        
+        // Queue entries: nullify created_by if user created them
+        \App\Models\QueueEntry::where('created_by', $user->id)->update(['created_by' => null]);
+        
+        // Patients: nullify created_by if user created them
+        \App\Models\Patient::where('created_by', $user->id)->update(['created_by' => null]);
+
+        // Now safe to delete the user
         $user->delete();
 
         $request->session()->invalidate();

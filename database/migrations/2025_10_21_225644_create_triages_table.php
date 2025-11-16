@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('triages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('patient_id')->constrained('patients')->cascadeOnDelete();
-            $table->foreignId('triagist_id')->constrained('users');
+            $table->foreignId('triagist_id')->constrained('users')->cascadeOnDelete();
             $table->tinyInteger('score');
             $table->text('notes')->nullable();
             $table->timestamps();

@@ -36,7 +36,7 @@ export default function QueueDisplay({
         const fetchQueue = async () => {
             try {
                 const params = selectedServiceId ? { service_id: selectedServiceId } : {};
-                const response = await fetch(`/api/display?${new URLSearchParams(params as any)}`);
+                const response = await fetch(`/display/api?${new URLSearchParams(params as any)}`);
                 const data = await response.json();
                 setWaiting(data.waiting || []);
                 setCalled(data.called || []);

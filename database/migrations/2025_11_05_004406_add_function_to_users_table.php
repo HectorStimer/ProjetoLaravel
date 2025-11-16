@@ -22,7 +22,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('function');
+            // Only drop if column exists (prevent down errors on repeated rollbacks)
+            if (Schema::hasColumn('users', 'function')) {
+                $table->dropColumn('function');
+            }
         });
     }
 };
