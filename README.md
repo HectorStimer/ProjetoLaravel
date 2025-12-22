@@ -128,15 +128,5 @@ Este projeto está em estado de MVP (funcionalidades básicas implementadas). Ai
  - criar seeders para dados de teste;
  - adicionar monitoramento e backups antes de produção.
 
-Se quiser, posso gerar um README traduzido para outro formato, ou adicionar badges (build, tests, coverage) e instruções de CI/CD.
-
----
-
-Se precisar, eu posso agora:
- - A) adicionar badges (CI, tests) ao README
- - B) criar um guia de deploy passo-a-passo (GitHub Actions)
- - C) criar seeders e testes iniciais (feature tests)
-
-Escolha A, B ou C ou peça outro ajuste e eu continuo.
-# ProjetoLaravel
 ****
+
